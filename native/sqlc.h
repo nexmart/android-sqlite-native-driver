@@ -70,6 +70,7 @@ const char * sqlc_errstr_native(int errcode);
 
 // FUTURE TBD bind blob:
 //  int sqlc_st_bind_blob(sqlc_handle_t st, int pos, const void *val, int len); // ??
+int sqlc_st_bind_parameter_index(sqlc_handle_t st, const char *name);
 int sqlc_st_bind_double(sqlc_handle_t st, int pos, double val);
 int sqlc_st_bind_int(sqlc_handle_t st, int pos, int val);
 int sqlc_st_bind_long(sqlc_handle_t st, int pos, sqlc_long_t val);
@@ -79,6 +80,8 @@ int sqlc_st_bind_text_native(sqlc_handle_t st, int col, const char *val);
 // FUTURE TBD: bind text in UTF-16 format to SKIP the conversion
 //  int sqlc_st_bind_text_string(sqlc_handle_t st, int col, const char *val);
 
+int sqlc_st_reset(sqlc_handle_t stmt);
+int sqlc_st_clear_bindings(sqlc_handle_t stmt);
 int sqlc_st_step(sqlc_handle_t st);
 
 int sqlc_st_column_count(sqlc_handle_t st);

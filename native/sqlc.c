@@ -120,6 +120,13 @@ const char * sqlc_errstr_native(int errcode)
   return sqlite3_errstr(errcode);
 }
 
+int sqlc_st_bind_parameter_index(sqlc_handle_t st, const char *name)
+{
+    sqlite3_stmt *myst = HANDLE_TO_VP(st);
+
+    return sqlite3_bind_parameter_index(myst, name);
+}
+
 int sqlc_st_bind_double(sqlc_handle_t st, int pos, double val)
 {
   sqlite3_stmt *myst = HANDLE_TO_VP(st);
@@ -160,6 +167,19 @@ int sqlc_st_bind_text_native(sqlc_handle_t st, int col, const char *val)
   MYLOG("%s %p %d %s", __func__, myst, col, val);
 
   return sqlite3_bind_text(myst, col, val, -1, SQLITE_TRANSIENT);
+}
+
+int sqlc_st_reset(sqlc_handle_t stmt)
+{
+  sqlite3_stmt *myst = HANDLE_TO_VP(stmt);
+
+  return sqlite3_reset(myst);
+}
+
+int sqlc_st_clear_bindings(sqlc_handle_t stmt)
+{
+  sqlite3_stmt *myst = HANDLE_TO_VP(stmt);
+  sqlite3_clear_bindings(myst);
 }
 
 int sqlc_st_step(sqlc_handle_t stmt)
