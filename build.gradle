@@ -42,6 +42,8 @@ configurations {
 dependencies {
     compile 'org.bytedeco:javacpp:1.2.1'
     javacpp 'org.bytedeco:javacpp:1.2.1'
+    compile 'com.android.support:support-annotations:23.4.0'
+    compile 'com.parse.bolts:bolts-tasks:1.4.0'
 }
 
 def buildSQLiteTask(cp, ndkRoot, projectRoot, androidArchitecture, compilerArchitecture, compilerPrefix, flags, outputArchitecture) {
@@ -57,6 +59,6 @@ def buildSQLiteTask(cp, ndkRoot, projectRoot, androidArchitecture, compilerArchi
                 '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-sqlite-native-driver/sqlite-amalgamation',
                 '-Dplatform.linkpath=sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + ':' + projectRoot + '/android-sqlite-native-driver/libs/' + outputArchitecture,
                 '-d', projectRoot + '/android-sqlite-native-driver/libs/' + outputArchitecture,
-                'com.hotwirestudios.sqlite.driver.SQLiteBridge'
+                'com.hotwirestudios.sqlite.driver.SQLiteNative'
     }
 }
