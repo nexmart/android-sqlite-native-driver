@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs += 'libs'
+        }
+    }
+
+    // See https://github.com/bytedeco/javacpp/blob/master/src/main/resources/org/bytedeco/javacpp/properties/ for defaults
+    libraryVariants.all { variant ->
+        variant.javaCompile.doLast {
+            println 'javacpp ' + variant.name
+            def projectRoot = project.rootDir.getCanonicalPath()
+            def ndkRoot = android.getNdkDirectory().getCanonicalPath()
+            def cp = variant.javaCompile.destinationDir.getCanonicalPath()
+
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv5te -mtune=xscale -msoft-float', 'armeabi')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv7-a -mfloat-abi=softfp -mfpu=neon -ffast-math -Wl,--fix-cortex-a8', 'armeabi-v7a')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm64', 'aarch64-linux-android', 'aarch64-linux-android', ' ', 'arm64-v8a')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86', 'x86', 'i686-linux-android', ' ', 'x86')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86_64', 'x86_64', 'x86_64-linux-android', ' ', 'x86_64')
+            println 'javacpp done'
+        }
+    }
+}
+
+configurations {
+    javacpp
+}
+
+dependencies {
+    compile 'org.bytedeco:javacpp:1.2.1'
+    javacpp 'org.bytedeco:javacpp:1.2.1'
+}
+
+def buildSQLiteTask(cp, ndkRoot, projectRoot, androidArchitecture, compilerArchitecture, compilerPrefix, flags, outputArchitecture) {
+    javaexec {
+        main 'org.bytedeco.javacpp.tools.Builder'
+        classpath configurations.javacpp
+        args '-cp', cp,
+                '-properties', 'android-arm',
+                '-Dplatform.root=' + ndkRoot,
+                '-Dplatform.sysroot=platforms/android-23/arch-' + androidArchitecture,
+                '-Dplatform.compiler.default=' + flags,
+                '-Dplatform.compiler=toolchains/' + compilerArchitecture + '-4.9/prebuilt/darwin-x86_64/bin/' + compilerPrefix + '-g++',
+                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-sqlite-native-driver/sqlite-amalgamation',
+                '-Dplatform.linkpath=sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + ':' + projectRoot + '/android-sqlite-native-driver/libs/' + outputArchitecture,
+                '-d', projectRoot + '/android-sqlite-native-driver/libs/' + outputArchitecture,
+                'com.hotwirestudios.sqlite.driver.SQLiteBridge'
+    }
+}

@@ -1,8 +1,8 @@
 .*.swp
 *.swp
-*.java.orig
+build
 obj
 lib
 libs
-sqlite-native-driver.jar
 *.zip
+*.iml
