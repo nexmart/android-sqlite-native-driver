@@ -7,15 +7,15 @@ import android.util.Log;
  */
 public class SQLiteException extends Exception {
 
-    private final @NativeSQLiteConnection.SQLiteResult int errorCode;
+    private final @SQLiteResult int errorCode;
 
-    public SQLiteException(@NativeSQLiteConnection.SQLiteResult int errorCode, String message) {
+    public SQLiteException(@SQLiteResult int errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
         Log.d("Lernapp/SQLITE", "Result Code: " + errorCode + ", Message: " + message);
     }
 
-    @NativeSQLiteConnection.SQLiteResult
+    @SQLiteResult
     public int getErrorCode() {
         return errorCode;
     }

@@ -65,29 +65,29 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
 
     @Override
     public void step() throws SQLiteException {
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_DONE);
+        @SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_DONE);
     }
 
     @Override
     public void finish() throws SQLiteException {
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_finalize(handle);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_finalize(handle);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
     public void resetAndClearBindings() throws SQLiteException {
-        @NativeSQLiteConnection.SQLiteResult int resetResult = SQLiteNative.sqlite3_reset(handle);
-        resultHandler.handleResultCode(resetResult, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int resetResult = SQLiteNative.sqlite3_reset(handle);
+        resultHandler.handleResultCode(resetResult, SQLiteNative.RESULT_OK);
 
-        @NativeSQLiteConnection.SQLiteResult int clearResult = SQLiteNative.sqlite3_clear_bindings(handle);
-        resultHandler.handleResultCode(clearResult, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int clearResult = SQLiteNative.sqlite3_clear_bindings(handle);
+        resultHandler.handleResultCode(clearResult, SQLiteNative.RESULT_OK);
     }
 
     @Override
     public void bindValue(long id, @NonNull String parameter) throws SQLiteException {
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), id);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), id);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
@@ -97,8 +97,8 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return;
         }
 
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_int(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), i);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), i);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
@@ -108,8 +108,8 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return;
         }
 
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), l);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), l);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
@@ -119,8 +119,8 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return;
         }
 
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_int(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), b ? 1 : 0);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), b ? 1 : 0);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
@@ -130,8 +130,8 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return;
         }
 
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), date.getTime());
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), date.getTime());
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
@@ -141,14 +141,14 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return;
         }
 
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_text(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), s, -1, SQLiteNative.SQLITE_TRANSIENT);
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_text(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), s, -1, SQLiteNative.SQLITE_TRANSIENT);
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     @Override
     public void bindNull(@NonNull String parameter) throws SQLiteException {
-        @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_bind_null(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter));
-        resultHandler.handleResultCode(result, NativeSQLiteConnection.RESULT_OK);
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_null(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter));
+        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     public void load(@NonNull final RowCallback callback, boolean finish) throws SQLiteException {
@@ -173,8 +173,8 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
         }
 
         try {
-            @NativeSQLiteConnection.SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
-            while (result == NativeSQLiteConnection.RESULT_ROW) {
+            @SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
+            while (result == SQLiteNative.RESULT_ROW) {
                 T rowResult = callback.readRow(this);
                 if (rowResult != null) {
                     return rowResult;
@@ -182,7 +182,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
                 //noinspection WrongConstant
                 result = SQLiteNative.sqlite3_step(handle);
             }
-            if (result != NativeSQLiteConnection.RESULT_DONE) {
+            if (result != SQLiteNative.RESULT_DONE) {
                 resultHandler.throwExceptionWithCode(result);
             }
         } finally {

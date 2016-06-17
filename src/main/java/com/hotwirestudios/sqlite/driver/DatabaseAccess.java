@@ -18,7 +18,7 @@ public class DatabaseAccess {
     public DatabaseAccess(String path) {
         super();
         executorService = Executors.newSingleThreadExecutor();
-        connection = new NativeSQLiteConnection(path, NativeSQLiteConnection.CREATE_IF_NECESSARY | NativeSQLiteConnection.OPEN_READWRITE);
+        connection = new NativeSQLiteConnection(path, SQLiteNative.SQLITE_OPEN_CREATE_IF_NECESSARY | SQLiteNative.SQLITE_OPEN_READWRITE);
     }
 
     public <T> Task<T> performThreadsafe(final SQLiteConnectionContext<T> connectionContext, final boolean connected, final boolean withinTransaction) {

@@ -13,20 +13,54 @@ import org.bytedeco.javacpp.annotation.Platform;
  */
 @Platform(cinclude = "sqlite3.h", link = "sqlite-native-driver")
 public class SQLiteNative {
+    private static final String TAG = "SQLITE_NATIVE";
+
+    public static final int RESULT_OK = 0;
+    public static final int RESULT_ERROR = 1;
+    public static final int RESULT_INTERNAL = 2;
+    public static final int RESULT_PERM = 3;
+    public static final int RESULT_ABORT = 4;
+    public static final int RESULT_BUSY = 5;
+    public static final int RESULT_LOCKED = 6;
+    public static final int RESULT_NO_MEMORY = 7;
+    public static final int RESULT_READONLY = 8;
+    public static final int RESULT_INTERRUPT = 9;
+    public static final int RESULT_IO_ERROR = 10;
+    public static final int RESULT_CORRUPT = 11;
+    public static final int RESULT_NOT_FOUND = 12;
+    public static final int RESULT_FULL = 13;
+    public static final int RESULT_CANNOT_OPEN = 14;
+    public static final int RESULT_LOCK_ERROR = 15;
+    public static final int RESULT_EMPTY = 16;
+    public static final int RESULT_SCHEMA_CHANGED = 17;
+    public static final int RESULT_TOO_BIG = 18;
+    public static final int RESULT_CONSTRAINT = 19;
+    public static final int RESULT_MISMATCH = 20;
+    public static final int RESULT_MISUSE = 21;
+    public static final int RESULT_NOT_IMPLEMENTED_LFS = 22;
+    public static final int RESULT_ACCESS_DENIED = 23;
+    public static final int RESULT_FORMAT = 24;
+    public static final int RESULT_RANGE = 25;
+    public static final int RESULT_NON_DB_FILE = 26;
+    public static final int RESULT_NOTICE = 27;
+    public static final int RESULT_WARNING = 28;
+    public static final int RESULT_ROW = 100;
+    public static final int RESULT_DONE = 101;
+
     static {
         Loader.load();
         sqlite3_initialize();
     }
 
-    static final int SQLITE_OPEN_READONLY = 0x00001;
-    static final int SQLITE_OPEN_READWRITE = 0x00002;
-    static final int SQLITE_OPEN_CREATE = 0x00004;
-    static final int SQLITE_OPEN_URI = 0x00040;
-    static final int SQLITE_OPEN_MEMORY = 0x00080;
-    static final int SQLITE_OPEN_NOMUTEX = 0x08000;
-    static final int SQLITE_OPEN_FULLMUTEX = 0x10000;
-    static final int SQLITE_OPEN_SHAREDCACHE = 0x20000;
-    static final int SQLITE_OPEN_PRIVATECACHE = 0x40000;
+    public static final int SQLITE_OPEN_READONLY = 0x00001;
+    public static final int SQLITE_OPEN_READWRITE = 0x00002;
+    public static final int SQLITE_OPEN_CREATE_IF_NECESSARY = 0x00004;
+    public static final int SQLITE_OPEN_URI = 0x00040;
+    public static final int SQLITE_OPEN_MEMORY = 0x00080;
+    public static final int SQLITE_OPEN_NOMUTEX = 0x08000;
+    public static final int SQLITE_OPEN_FULLMUTEX = 0x10000;
+    public static final int SQLITE_OPEN_SHAREDCACHE = 0x20000;
+    public static final int SQLITE_OPEN_PRIVATECACHE = 0x40000;
 
     static final int SQLITE_STATIC = 0;
     static final int SQLITE_TRANSIENT = -1;
