@@ -54,6 +54,12 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
     }
 
     @Override
+    public void registerFunction(String name, int numberOfArguments, SQLiteFunction function) throws SQLiteException {
+        @SQLiteResult int result = SQLiteNative.sqlite3_create_function(handle, name, numberOfArguments, SQLiteNative.SQLITE_UTF8, null, new SQLiteNative.FunctionCallback(function), null, null);
+        handleResultCode(result, SQLiteNative.RESULT_OK);
+    }
+
+    @Override
     public void handleResultCode(@SQLiteResult int code, @SQLiteResult int expected) throws SQLiteException {
         if (code != expected) {
             throwExceptionWithCode(code);

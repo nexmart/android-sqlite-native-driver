@@ -8,5 +8,7 @@ public interface SQLiteConnection {
 
     void executeStatement(String sql) throws SQLiteException;
 
+    void registerFunction(String name, int numberOfArguments, SQLiteFunction function) throws SQLiteException;
+
     long getLastInsertRowId();
 }

@@ -6,6 +6,7 @@ import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FunctionPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
+import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.annotation.ByPtrPtr;
 import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
@@ -70,6 +71,14 @@ public class SQLiteNative {
 
     static final int SQLITE_STATIC = 0;
     static final int SQLITE_TRANSIENT = -1;
+
+    static final int SQLITE_UTF8 = 1;
+    static final int SQLITE_UTF16LE = 2;
+    static final int SQLITE_UTF16BE = 3;
+    static final int SQLITE_UTF16 = 4;
+    @Deprecated
+    static final int SQLITE_ANY = 5;
+    static final int SQLITE_UTF16_ALIGNED = 8;
 
     @Opaque
     @Name("sqlite3")
@@ -157,6 +166,83 @@ public class SQLiteNative {
         }
     }
 
+    @Opaque
+    @Name("sqlite3_value")
+    public static class ValueHandle extends Pointer {
+        static {
+            Loader.load();
+        }
+
+        /**
+         * Default native constructor.
+         */
+        public ValueHandle() {
+            super((Pointer) null);
+        }
+
+        /**
+         * Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}.
+         */
+        public ValueHandle(Pointer p) {
+            super(p);
+        }
+    }
+
+    @Opaque
+    @Name("sqlite3_context")
+    public static class ContextHandle extends Pointer {
+        static {
+            Loader.load();
+        }
+
+        /**
+         * Default native constructor.
+         */
+        public ContextHandle() {
+            super((Pointer) null);
+        }
+
+        /**
+         * Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}.
+         */
+        public ContextHandle(Pointer p) {
+            super(p);
+        }
+    }
+
+    static class FunctionCallback extends FunctionPointer {
+        static {
+            Loader.load();
+        }
+
+        private final SQLiteFunction function;
+
+        protected FunctionCallback(SQLiteFunction function) {
+            this.function = function;
+            allocate();
+        }
+
+        private native void allocate();
+
+        public void call(ContextHandle context, int argc, @Cast("sqlite3_value **") PointerPointer<ValueHandle> argv) {
+            function.call(context, argc, argv);
+        }
+    }
+
+    abstract static class FinalCallback extends FunctionPointer {
+        static {
+            Loader.load();
+        }
+
+        protected FinalCallback() {
+            allocate();
+        }
+
+        private native void allocate();
+
+        public abstract void call(ContextHandle context);
+    }
+
     static native int sqlite3_initialize();
 
     static native int sqlite3_open_v2(String path, @ByPtrPtr ConnectionHandle connection, int flags, String zVfs);
@@ -204,4 +290,10 @@ public class SQLiteNative {
     static native int sqlite3_collation_needed(ConnectionHandle connection, Pointer p, CollationNeededCallback callback);
 
     static native int sqlite3_create_collation(ConnectionHandle connection, String name, int eTextRep, Pointer arg, CollationCallback callback);
+
+    static native int sqlite3_create_function(ConnectionHandle connection, String name, int nArg, int eTextRep, Pointer arg, FunctionCallback func, FunctionCallback step, FinalCallback fin);
+
+    public static native String sqlite3_value_text(ValueHandle value);
+
+    public static native void sqlite3_result_int(ContextHandle context, int result);
 }
