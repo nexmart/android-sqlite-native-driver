@@ -22,6 +22,9 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
         @SQLiteResult int result = SQLiteNative.sqlite3_open_v2(path, pointer, flags, null);
         handleResultCode(result, SQLiteNative.RESULT_OK);
         handle = pointer;
+
+        @SQLiteResult int collationResult = SQLiteNative.sqlite3_collation_needed(handle, null, collationCallback);
+        handleResultCode(collationResult, SQLiteNative.RESULT_OK);
     }
 
     public void close() throws SQLiteException {

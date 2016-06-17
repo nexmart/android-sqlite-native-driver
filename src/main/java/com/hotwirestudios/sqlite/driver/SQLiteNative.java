@@ -1,5 +1,9 @@
 package com.hotwirestudios.sqlite.driver;
 
+import android.util.Log;
+
+import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.javacpp.FunctionPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.annotation.ByPtrPtr;
@@ -7,6 +11,8 @@ import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Opaque;
 import org.bytedeco.javacpp.annotation.Platform;
+
+import java.nio.charset.Charset;
 
 /**
  * Created by FabianM on 14.06.16.
@@ -109,6 +115,48 @@ public class SQLiteNative {
         }
     }
 
+    static class CollationNeededCallback extends FunctionPointer {
+        static {
+            Loader.load();
+        }
+
+        protected CollationNeededCallback() {
+            allocate();
+        }
+
+        private native void allocate();
+
+        public void call(Pointer arg, ConnectionHandle connection, int eTextRep, String collationName) {
+            if (collationName == null || !collationName.equalsIgnoreCase("DIACRITIC")) {
+                return;
+            }
+
+            if (sqlite3_create_collation(connection, collationName, eTextRep, null, new CollationCallback()) != RESULT_OK) {
+                Log.w(TAG, "Could not auto-register " + collationName + " collation!");
+            }
+        }
+    }
+
+    static class CollationCallback extends FunctionPointer {
+        static {
+            Loader.load();
+        }
+
+        protected CollationCallback() {
+            allocate();
+        }
+
+        private native void allocate();
+
+        public int call(Pointer arg, int i, @Cast("const void *") final BytePointer left, int j, @Cast("const void *") BytePointer right) {
+            byte[] leftBytes = left == null ? new byte[0] : left.getStringBytes();
+            String l = new String(leftBytes, 0, i, Charset.forName("UTF-8"));
+            byte[] rightBytes = right == null ? new byte[0] : right.getStringBytes();
+            String r = new String(rightBytes, 0, j, Charset.forName("UTF-8"));
+            return l.compareToIgnoreCase(r);
+        }
+    }
+
     static native int sqlite3_initialize();
 
     static native int sqlite3_open_v2(String path, @ByPtrPtr ConnectionHandle connection, int flags, String zVfs);
@@ -152,4 +200,8 @@ public class SQLiteNative {
     static native String sqlite3_errstr(int code);
 
     static native long sqlite3_last_insert_rowid(ConnectionHandle connection);
+
+    static native int sqlite3_collation_needed(ConnectionHandle connection, Pointer p, CollationNeededCallback callback);
+
+    static native int sqlite3_create_collation(ConnectionHandle connection, String name, int eTextRep, Pointer arg, CollationCallback callback);
 }
