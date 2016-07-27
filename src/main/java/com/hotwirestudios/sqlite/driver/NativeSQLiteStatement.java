@@ -71,17 +71,15 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
 
     @Override
     public void finish() throws SQLiteException {
-        @SQLiteResult int result = SQLiteNative.sqlite3_finalize(handle);
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+        // Ignore errors for finalize, because finalize repeats error codes of the most recent function call
+        SQLiteNative.sqlite3_finalize(handle);
     }
 
     @Override
     public void resetAndClearBindings() throws SQLiteException {
-        @SQLiteResult int resetResult = SQLiteNative.sqlite3_reset(handle);
-        resultHandler.handleResultCode(resetResult, SQLiteNative.RESULT_OK);
-
-        @SQLiteResult int clearResult = SQLiteNative.sqlite3_clear_bindings(handle);
-        resultHandler.handleResultCode(clearResult, SQLiteNative.RESULT_OK);
+        // Ignore errors, because the error code of the last sqlite3_step will be repeated, if there was an error
+        SQLiteNative.sqlite3_reset(handle);
+        SQLiteNative.sqlite3_clear_bindings(handle);
     }
 
     @Override
