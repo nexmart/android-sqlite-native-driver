@@ -13,6 +13,4 @@ interface SQLiteConnectionInternal extends SQLiteConnection {
     void commitTransaction() throws SQLiteException;
 
     void rollbackTransaction() throws SQLiteException;
-
-    String getLastErrorMessage() throws SQLiteException;
 }

@@ -11,4 +11,6 @@ public interface SQLiteConnection {
     void registerFunction(String name, int numberOfArguments, SQLiteFunction function) throws SQLiteException;
 
     long getLastInsertRowId();
+
+    String getLastErrorMessage() throws SQLiteException;
 }
