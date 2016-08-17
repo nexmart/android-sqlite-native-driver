@@ -36,7 +36,11 @@ public interface SQLiteStatement {
 
     <T> T load(@NonNull RowValueCallback<T> callback, boolean finish) throws SQLiteException;
 
+    <T> T load(@NonNull CancellableRowValueCallback<T> callback, boolean finish) throws SQLiteException;
+
     <T> List<T> readList(@NonNull RowValueCallback<T> callback, boolean finish) throws SQLiteException;
+
+    <T> List<T> readList(@NonNull CancellableRowValueCallback<T> callback, boolean finish) throws SQLiteException;
 
     interface RowCallback {
         void readRow(SQLiteRow row) throws SQLiteException;
@@ -44,5 +48,9 @@ public interface SQLiteStatement {
 
     interface RowValueCallback<T> {
         T readRow(SQLiteRow row) throws SQLiteException;
+    }
+
+    interface CancellableRowValueCallback<T> extends RowValueCallback<T> {
+        boolean shouldCancel();
     }
 }

@@ -165,7 +165,26 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
     }
 
     @Override
-    public <T> T load(@NonNull RowValueCallback<T> callback, boolean finish) throws SQLiteException {
+    public <T> T load(@NonNull final RowValueCallback<T> callback, boolean finish) throws SQLiteException {
+        return load(new CancellableRowValueCallback<T>() {
+            @Override
+            public boolean shouldCancel() {
+                return false;
+            }
+
+            @Override
+            public T readRow(SQLiteRow row) throws SQLiteException {
+                return callback.readRow(row);
+            }
+        }, finish);
+    }
+
+    @Override
+    public <T> T load(@NonNull CancellableRowValueCallback<T> callback, boolean finish) throws SQLiteException {
+        if (callback.shouldCancel()) {
+            return null;
+        }
+
         if (columns == null) {
             int count = SQLiteNative.sqlite3_column_count(handle);
             columns = new Hashtable<>(count);
@@ -175,9 +194,17 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             }
         }
 
+        if (callback.shouldCancel()) {
+            return null;
+        }
+
         try {
             @SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
             while (result == SQLiteNative.RESULT_ROW) {
+                if (callback.shouldCancel()) {
+                    return null;
+                }
+
                 T rowResult = callback.readRow(this);
                 if (rowResult != null) {
                     return rowResult;
@@ -198,11 +225,30 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
     }
 
     @Override
-    public <T> List<T> readList(final @NonNull RowValueCallback<T> callback, boolean finish) throws SQLiteException {
+    public <T> List<T> readList(@NonNull final RowValueCallback<T> callback, boolean finish) throws SQLiteException {
+        return readList(new CancellableRowValueCallback<T>() {
+            @Override
+            public boolean shouldCancel() {
+                return false;
+            }
+
+            @Override
+            public T readRow(SQLiteRow row) throws SQLiteException {
+                return callback.readRow(row);
+            }
+        }, finish);
+    }
+
+    @Override
+    public <T> List<T> readList(final @NonNull CancellableRowValueCallback<T> callback, boolean finish) throws SQLiteException {
         final List<T> result = new ArrayList<>();
         load(new RowCallback() {
             @Override
             public void readRow(SQLiteRow row) throws SQLiteException {
+                if (callback.shouldCancel()) {
+                    return;
+                }
+
                 T item = callback.readRow(row);
                 if (item != null) {
                     result.add(item);
