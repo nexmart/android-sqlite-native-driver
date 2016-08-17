@@ -83,7 +83,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
     }
 
     @Override
-    public void bindValue(long id, @NonNull String parameter) throws SQLiteException {
+    public void bindId(long id, @NonNull String parameter) throws SQLiteException {
         if (id == SQLiteObject.ROW_ID_NONE) {
             bindNull(parameter);
             return;

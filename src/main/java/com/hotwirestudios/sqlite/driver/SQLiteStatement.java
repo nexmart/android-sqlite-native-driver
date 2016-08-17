@@ -18,7 +18,7 @@ public interface SQLiteStatement {
 
     void resetAndClearBindings() throws SQLiteException;
 
-    void bindValue(long id, @NonNull String parameter) throws SQLiteException;
+    void bindId(long id, @NonNull String parameter) throws SQLiteException;
 
     void bindValue(@Nullable Integer i, @NonNull String parameter) throws SQLiteException;
 

@@ -31,7 +31,7 @@ public abstract class Migration {
 
     private void markCompleted(SQLiteConnection connection) throws SQLiteException {
         SQLiteStatement statement = connection.createStatement("INSERT INTO migration (id, name, execution_date) VALUES (:id, :name, :execution_date)");
-        statement.bindValue(migrationId, ":id");
+        statement.bindId(migrationId, ":id");
         statement.bindValue(getName(), ":name");
         statement.bindValue(new Date(), ":execution_date");
         statement.execute();
