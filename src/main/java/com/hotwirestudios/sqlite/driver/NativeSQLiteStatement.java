@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by FabianM on 18.05.16.
@@ -133,7 +134,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return;
         }
 
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), date.getTime());
+        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), TimeUnit.MILLISECONDS.toSeconds(date.getTime()));
         resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
@@ -313,7 +314,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
         }
 
         long timestamp = SQLiteNative.sqlite3_column_int64(handle, index);
-        return new Date(timestamp);
+        return new Date(TimeUnit.SECONDS.toMillis(timestamp));
     }
 
     @Override
