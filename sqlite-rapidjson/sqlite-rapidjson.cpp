@@ -362,7 +362,7 @@ int create_insert_statement_for_temp_table(sqlite3 *connection, const char *tabl
 
 int create_update_statement(sqlite3 *connection, const char *table, const Value &columns, const char **primaryKeys, int pkLength, sqlite3_stmt **statement) {
     if (pkLength == columns.Size()) {
-        statement = NULL;
+        *statement = NULL;
         return SQLITE_OK;
     }
 
