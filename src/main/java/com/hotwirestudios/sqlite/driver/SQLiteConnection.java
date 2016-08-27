@@ -14,5 +14,5 @@ public interface SQLiteConnection {
 
     String getLastErrorMessage() throws SQLiteException;
 
-    @SQLiteResult int importJson(String json, PrimaryKeysCallbackFunction primaryKeysCallback) throws Exception;
+    void importJson(String json, PrimaryKeysCallbackFunction primaryKeysCallback) throws SQLiteException;
 }

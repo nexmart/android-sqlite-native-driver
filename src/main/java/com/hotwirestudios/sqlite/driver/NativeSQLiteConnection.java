@@ -97,10 +97,9 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
     }
 
     @Override
-    public @SQLiteResult
-    int importJson(String json, PrimaryKeysCallbackFunction primaryKeysCallback) throws Exception {
+    public void importJson(String json, PrimaryKeysCallbackFunction primaryKeysCallback) throws SQLiteException {
         @SQLiteResult int result = SQLiteNative.sqlite_import_json(handle, json, new SQLiteNative.PrimaryKeysCallback(primaryKeysCallback));
-        return result;
+        handleResultCode(result, SQLiteNative.RESULT_OK);
     }
 
     private String getResultMessage(@SQLiteResult int code) {
