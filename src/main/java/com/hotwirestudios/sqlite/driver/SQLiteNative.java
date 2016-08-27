@@ -4,10 +4,13 @@ import android.util.Log;
 
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.FunctionPointer;
+import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.PointerPointer;
+import org.bytedeco.javacpp.annotation.ByPtr;
 import org.bytedeco.javacpp.annotation.ByPtrPtr;
+import org.bytedeco.javacpp.annotation.ByRef;
 import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Opaque;
@@ -18,7 +21,7 @@ import java.nio.charset.Charset;
 /**
  * Created by FabianM on 14.06.16.
  */
-@Platform(cinclude = "sqlite3.h", link = "sqlite-native-driver")
+@Platform(include = "sqlite-rapidjson.h", link = "sqlite-native-driver")
 public class SQLiteNative {
     private static final String TAG = "SQLITE_NATIVE";
 
@@ -157,7 +160,7 @@ public class SQLiteNative {
 
         private native void allocate();
 
-        public int call(Pointer arg, int i, @Cast("const void *") final BytePointer left, int j, @Cast("const void *") BytePointer right) {
+        public int call(@SuppressWarnings("UnusedParameters") Pointer arg, int i, @Cast("const void *") final BytePointer left, int j, @Cast("const void *") BytePointer right) {
             byte[] leftBytes = left == null ? new byte[0] : left.getStringBytes();
             String l = new String(leftBytes, 0, i, Charset.forName("UTF-8"));
             byte[] rightBytes = right == null ? new byte[0] : right.getStringBytes();
@@ -229,6 +232,28 @@ public class SQLiteNative {
         }
     }
 
+    static class PrimaryKeysCallback extends FunctionPointer {
+        static {
+            Loader.load();
+        }
+
+        private final PrimaryKeysCallbackFunction function;
+
+        protected PrimaryKeysCallback(PrimaryKeysCallbackFunction function) {
+            this.function = function;
+            allocate();
+        }
+
+        private native void allocate();
+
+        // TODO: Out param instead of return?
+        public @Cast("const char **") PointerPointer<BytePointer> call(String table, IntPointer length) {
+            String[] pks = function.call(table);
+            length.put(pks.length);
+            return new PointerPointer<>(pks);
+        }
+    }
+
     abstract static class FinalCallback extends FunctionPointer {
         static {
             Loader.load();
@@ -296,4 +321,6 @@ public class SQLiteNative {
     public static native String sqlite3_value_text(ValueHandle value);
 
     public static native void sqlite3_result_int(ContextHandle context, int result);
+
+    static native int sqlite_import_json(ConnectionHandle connection, String json, PrimaryKeysCallback primaryKeysCallback);
 }

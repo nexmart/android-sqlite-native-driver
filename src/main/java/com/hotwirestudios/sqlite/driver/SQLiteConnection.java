@@ -13,4 +13,6 @@ public interface SQLiteConnection {
     long getLastInsertRowId();
 
     String getLastErrorMessage() throws SQLiteException;
+
+    @SQLiteResult int importJson(String json, PrimaryKeysCallbackFunction primaryKeysCallback) throws Exception;
 }

@@ -56,7 +56,7 @@ def buildSQLiteTask(cp, ndkRoot, projectRoot, androidArchitecture, compilerArchi
                 '-Dplatform.sysroot=platforms/android-23/arch-' + androidArchitecture,
                 '-Dplatform.compiler.default=' + flags,
                 '-Dplatform.compiler=toolchains/' + compilerArchitecture + '-4.9/prebuilt/darwin-x86_64/bin/' + compilerPrefix + '-g++',
-                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-sqlite-native-driver/sqlite-amalgamation',
+                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-sqlite-native-driver/sqlite-amalgamation:' + projectRoot + '/android-sqlite-native-driver/rapidjson/include:' + projectRoot + '/android-sqlite-native-driver/sqlite-rapidjson',
                 '-Dplatform.linkpath=sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + ':' + projectRoot + '/android-sqlite-native-driver/libs/' + outputArchitecture,
                 '-d', projectRoot + '/android-sqlite-native-driver/libs/' + outputArchitecture,
                 'com.hotwirestudios.sqlite.driver.SQLiteNative'
