@@ -273,7 +273,12 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
 
     @Override
     public long getId(String column) throws SQLiteException {
-        return SQLiteNative.sqlite3_column_int64(handle, getColumnIndex(column));
+        int index = getColumnIndex(column);
+        if (isNull(index)) {
+            return SQLiteObject.ROW_ID_NONE;
+        }
+
+        return SQLiteNative.sqlite3_column_int64(handle, index);
     }
 
     @Override
