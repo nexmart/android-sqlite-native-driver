@@ -295,8 +295,12 @@ int bind_statement(sqlite3_stmt *statement, const Value &columns, const Value &v
             bindResult = sqlite3_bind_null(statement, index);
         } else if (value.IsBool()) {
             bindResult = sqlite3_bind_int(statement, index, value.GetBool());
-        } else if (value.IsNumber()) {
+        } else if (value.IsInt64()) {
+            //__android_log_print(ANDROID_LOG_VERBOSE, "JSON_NDK", "int64 parameter: %s value: %lld\ndouble value: %f\ncasted value: %lld\n", parameter.c_str(), (long long)value.GetInt64(), value.GetDouble(), (long long)((uint64_t)value.GetDouble()));
             bindResult = sqlite3_bind_int64(statement, index, value.GetInt64());
+        } else if (value.IsNumber()) {
+            //__android_log_print(ANDROID_LOG_VERBOSE, "JSON_NDK", "number parameter: %s value: %lld\ndouble value: %f\ncasted value: %lld\n", parameter.c_str(), (long long)value.GetInt64(), value.GetDouble(), (long long)((uint64_t)value.GetDouble()));
+            bindResult = sqlite3_bind_int64(statement, index, (uint64_t)value.GetDouble());
         } else {
             bindResult = sqlite3_bind_text(statement, index, value.GetString(), -1, SQLITE_TRANSIENT);
         }
