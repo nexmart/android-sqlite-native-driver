@@ -235,16 +235,16 @@ int delete_from_table(sqlite3 *connection, const char *table, const char **keys,
             sql += ")";
         }
     } else {
-        sql += " WHERE NOT EXISTS (SELECT 1 FROM \"";
+        sql += " WHERE NOT EXISTS (SELECT 1 FROM temp_";
         sql += table;
-        sql += "\" a JOIN temp_";
-        sql += table;
-        sql += " b ON ";
+        sql += " a WHERE ";
         for (int i = 0; i < length; i++) {
             const char *key = keys[i];
-            sql += "a.";
+            sql += "\"";
+            sql += table;
+            sql += "\".";
             sql += key;
-            sql += " = b.";
+            sql += " = a.";
             sql += key;
             if (i < length - 1) {
                 sql += " AND ";
