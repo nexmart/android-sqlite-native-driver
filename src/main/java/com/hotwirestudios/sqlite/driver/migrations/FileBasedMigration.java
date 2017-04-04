@@ -14,7 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * Created by FabianM on 19.05.16.
+ * Performs all statements from a provided SQL file resource as a single migration.
  */
 public class FileBasedMigration extends Migration {
     private final String name;

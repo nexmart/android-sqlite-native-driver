@@ -12,9 +12,18 @@ import java.util.List;
 import bolts.Task;
 
 /**
- * Created by FabianM on 18.05.16.
+ * Simple migration manager allow to apply new migrations.
  */
 public class MigrationManager {
+    /**
+     * Performs all necessary migrations of the provided list.
+     * The migrations will be executed in the provided order.
+     * As they are identified by the MigrationId, make sure to have unique ids for all provided migrations.
+     *
+     * @param migrations     The migrations.
+     * @param databaseAccess The database access
+     * @return The task representing the asynchronous operation
+     */
     public Task<Void> executeNecessaryMigrations(final List<Migration> migrations, final DatabaseAccess databaseAccess) {
         return databaseAccess.performThreadsafe(new DatabaseAccess.SQLiteConnectionContext<Void>() {
             @Override

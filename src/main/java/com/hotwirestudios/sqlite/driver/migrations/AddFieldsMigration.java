@@ -3,9 +3,8 @@ package com.hotwirestudios.sqlite.driver.migrations;
 import com.hotwirestudios.sqlite.driver.SQLiteConnection;
 
 /**
- * Created by FabianM on 19.12.16.
+ * Adds fields to an existing table.
  */
-
 public class AddFieldsMigration extends Migration {
     private final String name;
     private final String table;

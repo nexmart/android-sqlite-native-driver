@@ -3,7 +3,7 @@ package com.hotwirestudios.sqlite.driver.migrations;
 import com.hotwirestudios.sqlite.driver.SQLiteConnection;
 
 /**
- * Created by FabianM on 18.05.16.
+ * Creates the migration table which is mandatory for all other migrations to work properly.
  */
 public class CreateMigrationsTableMigration extends Migration {
     public CreateMigrationsTableMigration(long migrationId) {
