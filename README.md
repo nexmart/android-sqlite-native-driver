@@ -261,7 +261,7 @@ We'll assume the provided connection has already been opened and close also happ
 **NOTE**: A registered function only stays registered as long as the connection is open. If you need the same function again when re-opening a connection, you have to re-register it.
 
 ```java
-public void createContainsFunction() throws SQLiteException {
+public void createContainsFunction(SQLiteConnection connection) throws SQLiteException {
     connection.registerFunction("diacritic_contains", 2, new SQLiteFunction() {
         @Override
         public void call(SQLiteNative.ContextHandle context, int argc, PointerPointer<SQLiteNative.ValueHandle> argv) {
@@ -278,5 +278,58 @@ public void createContainsFunction() throws SQLiteException {
             SQLiteNative.sqlite3_result_int(context, left.toLowerCase().contains(right.toLowerCase()) ? 1 : 0);
         }
     });
+}
+```
+
+## JSON import
+
+The JSON file structure is assumed to be like this:
+
+```javascript
+{ "current": [
+    {
+        "table": "my_objects",
+        "columns": [
+            "id",
+            "name"
+        ],
+        "count": 16567,
+        "values": [
+            [
+                1,
+                "Object name 1"
+            ]
+            // more rows ...
+        ]
+    }
+    // more tables ...
+  ]
+}
+```
+
+This will either initialize an empty database or update the database to the state represented by the JSON string.
+
+**NOTE**: Your tables should be in the `"current"` array in a meaningful order and you should setup your tables to CASCADE deletes for foreign keys, so you don't run into PK/FK errors.
+
+**WARNING**: All rows not present in the JSON will be deleted!
+
+```java
+public void importJson(SQLiteConnection connection, String json) throws SQLiteException {
+    connection.importJson(json, new PrimaryKeysCallbackFunction() {
+        @Override
+        public String[] call(String table) {
+            List<String> primaryKeys = getPrimaryKeys(table);
+            return primaryKeys.toArray(new String[primaryKeys.size()]);
+        }
+    });
+}
+
+private List<String> getPrimaryKeys(String table) {
+    switch (table) {
+        case "hierarchy":
+            return Arrays.asList("parent_id", "child_id"); // The table hierarchy just connects parents and children, so it has a combined primary key
+        default:
+            return Collections.singletonList("id"); // All other tables just have a "id INTEGER NOT NULL PRIMARY KEY" primary key column. If your primary keys are named different, then just insert the appropriate switch cases.
+    }
 }
 ```
