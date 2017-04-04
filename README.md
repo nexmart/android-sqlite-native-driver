@@ -70,7 +70,7 @@ public Task<Database<MyDatabaseOperations>> establishDatabase(File file) {
 ### Read
 
 ```java
-public void displayMyObjectsAsync(Database<MyDatabaseOperations> database, String name) {
+public void displayMyObjectsAsync(Database<MyDatabaseOperations> database, final String name) {
     CancellationTokenSource tokenSource = new CancellationTokenSource();
     final CancellationToken token = tokenSource.getToken();
 
@@ -120,11 +120,11 @@ public class MyDatabaseOperationsImpl implements MyDatabaseOperations {
 ### Insert
 
 ```java
-public void insertMyObjectsAsync(Database<MyDatabaseOperations> database, List<MyObj> objs) {
+public void insertMyObjectsAsync(Database<MyDatabaseOperations> database, final List<MyObj> objs) {
     database.performOperations(new Database.OperationsRunner<MyDatabaseOperations, Void>() {
             @Override
             public Void run(MyDatabaseOperations databaseOperations) throws SQLiteException {
-                databaseOperations.insertObjects(name);
+                databaseOperations.insertObjects(objs);
                 return null;
             }
         }, true).onSuccess(new Continuation<Void, Void>() {
