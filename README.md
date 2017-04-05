@@ -9,7 +9,7 @@ License: UNLICENSE (public domain).
 ## About
 
 Android SQLite native driver provides:
-- Semi-automatic AAR build, including build of native a SQLite library (currently version 3.8.10.2) for major Android targets (`armeabi`, `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64`) - See setup steps below
+- Semi-automatic AAR build, including build of a native SQLite library (currently version 3.8.10.2) for major Android targets (`armeabi`, `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64`) - See setup steps below
 - `SQLiteConnection` and `SQLiteStatement` interfaces for the most common use cases of accessing SQLite databases
 - Registration of function callbacks in SQLite
 - Safely making asynchronous database calls using `Database` and `DatabaseAccess` classes (see example below) by leveraging [Bolts](https://github.com/BoltsFramework/Bolts-Android) - This is optional. You're welcome to just use `NativeSQLiteConnection` directly, but keep in mind, that SQLite by itself is not thread-safe and you'll have to handle both thread-safety and opening/closing database connections by yourself then.
