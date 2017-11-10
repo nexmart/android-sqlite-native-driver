@@ -8,3 +8,4 @@ libs
 *.iml
 .idea
 .gradle
+local.properties
