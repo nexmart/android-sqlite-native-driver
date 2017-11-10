@@ -17,12 +17,12 @@ android {
         jcenter()
     }
 
-    compileSdkVersion 24
+    compileSdkVersion 26
     buildToolsVersion '27.0.1'
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 24
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
         consumerProguardFiles 'proguard-rules.txt'
@@ -36,7 +36,7 @@ android {
 
     // See https://github.com/bytedeco/javacpp/blob/master/src/main/resources/org/bytedeco/javacpp/properties/ for defaults
     libraryVariants.all { variant ->
-        variant.javaCompile.doLast {
+        variant.javaCompiler.doLast {
             println 'javacpp ' + variant.name
             def projectRoot = projectDir.getCanonicalPath()
             def ndkRoot = android.getNdkDirectory().getCanonicalPath()
@@ -59,7 +59,7 @@ configurations {
 dependencies {
     compile 'org.bytedeco:javacpp:1.2.1'
     javacpp 'org.bytedeco:javacpp:1.2.1'
-    compile 'com.android.support:support-annotations:24.2.0'
+    compile 'com.android.support:support-annotations:27.0.0'
     compile 'com.parse.bolts:bolts-tasks:1.4.0'
 }
 
