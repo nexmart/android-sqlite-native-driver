@@ -1,5 +1,12 @@
 package com.hotwirestudios.sqlite.driver;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import org.bytedeco.javacpp.BytePointer;
+
+import java.nio.charset.Charset;
+
 /**
  * Created by FabianM on 18.05.16.
  */
@@ -7,12 +14,14 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
 
     private final String path;
     private final @OpenFlags int flags;
+    private final String key;
     private final SQLiteNative.CollationNeededCallback collationCallback;
 
     private SQLiteNative.ConnectionHandle handle;
 
-    public NativeSQLiteConnection(String path, @OpenFlags int flags) {
+    public NativeSQLiteConnection(@NonNull String path, @Nullable String key, @OpenFlags int flags) {
         this.path = path;
+        this.key = key;
         this.flags = flags;
         this.collationCallback = new SQLiteNative.CollationNeededCallback();
     }
@@ -22,6 +31,12 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
         @SQLiteResult int result = SQLiteNative.sqlite3_open_v2(path, pointer, flags, null);
         handleResultCode(result, SQLiteNative.RESULT_OK);
         handle = pointer;
+
+        if (key != null) {
+            byte[] bytes = key.getBytes(Charset.forName("utf-8"));
+            @SQLiteResult int cryptoResult = SQLiteNative.sqlite3_key(handle, new BytePointer(bytes), bytes.length);
+            handleResultCode(cryptoResult, SQLiteNative.RESULT_OK);
+        }
 
         @SQLiteResult int collationResult = SQLiteNative.sqlite3_collation_needed(handle, null, collationCallback);
         handleResultCode(collationResult, SQLiteNative.RESULT_OK);

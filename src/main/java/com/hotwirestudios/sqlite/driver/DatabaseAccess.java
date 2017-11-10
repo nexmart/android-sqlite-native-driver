@@ -1,5 +1,6 @@
 package com.hotwirestudios.sqlite.driver;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.util.concurrent.Callable;
@@ -20,10 +21,10 @@ public class DatabaseAccess {
      *
      * @param path The full qualified database path
      */
-    public DatabaseAccess(String path) {
+    public DatabaseAccess(@NonNull String path, @Nullable String key) {
         super();
         executorService = Executors.newSingleThreadExecutor();
-        connection = new NativeSQLiteConnection(path, SQLiteNative.SQLITE_OPEN_CREATE_IF_NECESSARY | SQLiteNative.SQLITE_OPEN_READWRITE);
+        connection = new NativeSQLiteConnection(path, key, SQLiteNative.SQLITE_OPEN_CREATE_IF_NECESSARY | SQLiteNative.SQLITE_OPEN_READWRITE);
     }
 
     /**

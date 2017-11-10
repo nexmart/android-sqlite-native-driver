@@ -8,9 +8,7 @@ import org.bytedeco.javacpp.IntPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.PointerPointer;
-import org.bytedeco.javacpp.annotation.ByPtr;
 import org.bytedeco.javacpp.annotation.ByPtrPtr;
-import org.bytedeco.javacpp.annotation.ByRef;
 import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Opaque;
@@ -21,7 +19,8 @@ import java.nio.charset.Charset;
 /**
  * Created by FabianM on 14.06.16.
  */
-@Platform(include = "sqlite-rapidjson.h", link = "sqlite-native-driver")
+@SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
+@Platform(include = "sqlite-rapidjson.h", link = {"sqlite-native-driver"})
 public class SQLiteNative {
     private static final String TAG = "SQLITE_NATIVE";
 
@@ -72,8 +71,8 @@ public class SQLiteNative {
     public static final int SQLITE_OPEN_SHAREDCACHE = 0x20000;
     public static final int SQLITE_OPEN_PRIVATECACHE = 0x40000;
 
-    static final int SQLITE_STATIC = 0;
-    static final int SQLITE_TRANSIENT = -1;
+    static final Pointer SQLITE_STATIC = new StaticPointer(0);
+    static final Pointer SQLITE_TRANSIENT = new StaticPointer(-1);
 
     static final int SQLITE_UTF8 = 1;
     static final int SQLITE_UTF16LE = 2;
@@ -247,7 +246,8 @@ public class SQLiteNative {
         private native void allocate();
 
         // TODO: Out param instead of return?
-        public @Cast("const char **") PointerPointer<BytePointer> call(String table, IntPointer length) {
+        public @Cast("const char **")
+        PointerPointer<BytePointer> call(String table, IntPointer length) {
             String[] pks = function.call(table);
             length.put(pks.length);
             return new PointerPointer<>(pks);
@@ -290,7 +290,7 @@ public class SQLiteNative {
 
     static native int sqlite3_bind_int64(StatementHandle statement, int index, long value);
 
-    static native int sqlite3_bind_text(StatementHandle statement, int index, String value, int nBytes, @Cast("sqlite3_destructor_type") int destructorBehavior);
+    static native int sqlite3_bind_text(StatementHandle statement, int index, String value, int nBytes, @Cast("sqlite3_destructor_type") Pointer destructorBehavior);
 
     static native int sqlite3_column_count(StatementHandle statement);
 
@@ -321,6 +321,8 @@ public class SQLiteNative {
     public static native String sqlite3_value_text(ValueHandle value);
 
     public static native void sqlite3_result_int(ContextHandle context, int result);
+
+    public static native int sqlite3_key(ConnectionHandle connection, @Cast("const void *") BytePointer key, int keyLength);
 
     static native int sqlite_import_json(ConnectionHandle connection, String json, PrimaryKeysCallback primaryKeysCallback);
 }

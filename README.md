@@ -2,9 +2,9 @@
 
 Provides a native build of SQLite with an interface for Android libraries.
 
-Based on [JavaCPP](https://github.com/bytedeco/javacpp) and [Android sqlite native driver](https://github.com/liteglue/Android-sqlite-native-driver) by Christopher J. Brody aka Chris Brody.
+Based on [JavaCPP](https://github.com/bytedeco/javacpp) and [Android SQLCipher](https://github.com/sqlcipher/android-database-sqlcipher).
 
-License: UNLICENSE (public domain).
+License: UNLICENSE (public domain). Please note that SQLCipher is not public domain. Find their license [here](https://github.com/sqlcipher/android-database-sqlcipher/blob/master/SQLCIPHER_LICENSE).
 
 ## About
 
@@ -16,20 +16,15 @@ Android SQLite native driver provides:
 - Lightweight database migrations (just apply, no revert). Again this is optional. Feel free to roll your own migration mechanism.
 - `DIACRITIC` collation for text columns that should be sorted, respecting diacritics. **NOTE**: This makes sorting considerably slower, as it uses a callback to Java internally. Just apply `COLLATE DIACRITIC` to your `TEXT` column, if you want this.
 - Fast initialization/update of a database from a JSON String (using [RapidJSON](https://github.com/miloyip/rapidjson))
-
-**NOTE:** This project references the `rapidjson` and `sqlite-amalgamation` subprojects, which are resolved by: $ `make init` (as described below).
+- Database encryption using [SQLCipher](https://github.com/sqlcipher/android-database-sqlcipher) (pass null key to skip encryption)
 
 SQLite connection handles, function handles etc. are mostly wrapped for type-safety - single exception are callback function arguments (see example below).
 
 # Setup
 
-Initialize the `rapidjson` and `sqlite-amalgamation` subprojects:
+To init submodules, build Open SSL as well as Amalgamation and finally the native SQLite lib (libjniSQLiteNative.so) call:
 
-$ `make init`
-
-Build native SQLite libraries:
-
-$ `make`
+$ `./initialize.sh`
 
 Build the AAR with gradle:
 
@@ -48,12 +43,12 @@ This example assumes the initial schema of your database is stored in a raw text
 **NOTE**: This sets up a thread-safe way to call your database, but after migrating your DB the SQLite connection is actually closed. See the coverage of `DatabaseAccess` later on.
 
 ```java
-public Task<Database<MyDatabaseOperations>> establishDatabase(File file) {
+public Task<Database<MyDatabaseOperations>> establishDatabase(File file, String encryptionKey) {
     if (file == null) {
         return Task.forResult(null);
     }
 
-    Database<MyDatabaseOperations> database = new Database<>(new DatabaseAccess(file.getAbsolutePath()), new DatabaseOperationsFactory() {
+    Database<MyDatabaseOperations> database = new Database<>(new DatabaseAccess(file.getAbsolutePath(), encryptionKey), new DatabaseOperationsFactory() {
         @Override
         public MyDatabaseOperations createOperations(@Nullable SQLiteConnection connection) {
             return new MyDatabaseOperationsImpl(connection);

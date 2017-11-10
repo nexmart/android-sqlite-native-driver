@@ -5,7 +5,7 @@
 #ifndef SWISSCAMPUS_LERNAPP_SQLITE_RAPIDJSON_H
 #define SWISSCAMPUS_LERNAPP_SQLITE_RAPIDJSON_H
 
-#include "../sqlite-amalgamation/sqlite3.h"
+#include "../android-database-sqlcipher/android-database-sqlcipher/src/main/external/sqlcipher/sqlite3.h"
 
 typedef const char ** (*primaryKeysFn)(const char *, int *);
 

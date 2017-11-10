@@ -3,9 +3,7 @@ apply plugin: 'com.android.library'
 buildscript {
     repositories {
         jcenter()
-        maven {
-            url 'https://maven.google.com'
-        }
+        google()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.0'
@@ -40,13 +38,13 @@ android {
             println 'javacpp ' + variant.name
             def projectRoot = projectDir.getCanonicalPath()
             def ndkRoot = android.getNdkDirectory().getCanonicalPath()
-            def cp = variant.javaCompile.destinationDir.getCanonicalPath()
+            def cp = variant.javaCompiler.destinationDir.getCanonicalPath()
 
             buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv5te -mtune=xscale -msoft-float', 'armeabi')
             buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv7-a -mfloat-abi=softfp -mfpu=neon -ffast-math -Wl,--fix-cortex-a8', 'armeabi-v7a')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm64', 'aarch64-linux-android', 'aarch64-linux-android', ' ', 'arm64-v8a')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86', 'x86', 'i686-linux-android', ' ', 'x86')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86_64', 'x86_64', 'x86_64-linux-android', ' ', 'x86_64')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm64', 'aarch64-linux-android', 'aarch64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'arm64-v8a')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86', 'x86', 'i686-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86_64', 'x86_64', 'x86_64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86_64')
             println 'javacpp done'
         }
     }
@@ -56,26 +54,30 @@ configurations {
     javacpp
 }
 
-dependencies {
-    compile 'org.bytedeco:javacpp:1.2.1'
-    javacpp 'org.bytedeco:javacpp:1.2.1'
-    compile 'com.android.support:support-annotations:27.0.0'
-    compile 'com.parse.bolts:bolts-tasks:1.4.0'
-}
-
 def buildSQLiteTask(cp, ndkRoot, projectRoot, androidArchitecture, compilerArchitecture, compilerPrefix, flags, outputArchitecture) {
     javaexec {
         main 'org.bytedeco.javacpp.tools.Builder'
         classpath configurations.javacpp
         args '-cp', cp,
-                '-properties', 'android-arm',
+                '-properties', "android-${androidArchitecture}",
                 '-Dplatform.root=' + ndkRoot,
-                '-Dplatform.sysroot=platforms/android-23/arch-' + androidArchitecture,
-                '-Dplatform.compiler.default=' + flags,
+                "-Dplatform.sysroot=platforms/${android.compileSdkVersion}/arch-" + androidArchitecture,
+                '-Dplatform.compiler.default=' + flags + ' -DSQLITE_HAS_CODEC -DSQLCIPHER_CRYPTO_OPENSSL',
                 '-Dplatform.compiler=toolchains/' + compilerArchitecture + '-4.9/prebuilt/darwin-x86_64/bin/' + compilerPrefix + '-g++',
-                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/sqlite-amalgamation:' + projectRoot + '/rapidjson/include:' + projectRoot + '/sqlite-rapidjson',
+                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-database-sqlcipher/android-database-sqlcipher/src/main/cpp:' + projectRoot + '/android-database-sqlcipher/android-database-sqlcipher/src/main/external/sqlcipher:' + projectRoot + '/rapidjson/include:' + projectRoot + '/sqlite-rapidjson',
                 '-Dplatform.linkpath=sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + ':' + projectRoot + '/libs/' + outputArchitecture,
                 '-d', projectRoot + '/libs/' + outputArchitecture,
                 'com.hotwirestudios.sqlite.driver.SQLiteNative'
     }
+}
+
+dependencies {
+    implementation 'org.bytedeco:javacpp:1.3.3'
+    javacpp 'org.bytedeco:javacpp:1.3.3'
+    implementation 'com.android.support:support-annotations:27.0.0'
+    implementation 'com.parse.bolts:bolts-tasks:1.4.0'
+}
+
+repositories {
+    google()
 }
