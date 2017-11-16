@@ -1,13 +1,14 @@
 package com.hotwirestudios.sqlite.driver;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 /**
  * Allows to create a custom database operations object which operates on the provided connection.
- *
- * @param <TOperations> The database operations type
+ * @param <TReadOperations>
+ * @param <TReadWriteOperations>
  */
-public interface DatabaseOperationsFactory<TOperations> {
+public interface DatabaseOperationsFactory<TReadOperations, TReadWriteOperations extends TReadOperations>  {
 
     /**
      * Creates a custom database operations object which operates on the provided connection.
@@ -15,5 +16,7 @@ public interface DatabaseOperationsFactory<TOperations> {
      * @param connection The database connection
      * @return The operations object
      */
-    TOperations createOperations(@Nullable SQLiteConnection connection);
+    TReadOperations createReadOperations(@NonNull SQLiteConnection connection);
+
+    TReadWriteOperations createReadWriteOperations(@NonNull SQLiteConnection connection);
 }

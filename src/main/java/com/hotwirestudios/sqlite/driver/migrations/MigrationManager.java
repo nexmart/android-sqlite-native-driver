@@ -1,5 +1,6 @@
 package com.hotwirestudios.sqlite.driver.migrations;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.hotwirestudios.sqlite.driver.DatabaseAccess;
@@ -27,7 +28,7 @@ public class MigrationManager {
     public Task<Void> executeNecessaryMigrations(final List<Migration> migrations, final DatabaseAccess databaseAccess) {
         return databaseAccess.performThreadsafe(new DatabaseAccess.SQLiteConnectionContext<Void>() {
             @Override
-            public Void run(@Nullable SQLiteConnection connection) throws Exception {
+            public Void run(@NonNull SQLiteConnection connection) throws Exception {
                 List<Long> performedMigrationIds;
                 try {
                     performedMigrationIds = Migration.getPerformedMigrationIds(connection);
@@ -43,6 +44,6 @@ public class MigrationManager {
                 }
                 return null;
             }
-        }, true, true);
+        }, true);
     }
 }

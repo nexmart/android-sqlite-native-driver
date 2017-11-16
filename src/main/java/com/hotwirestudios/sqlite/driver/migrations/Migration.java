@@ -52,9 +52,9 @@ public abstract class Migration {
 
     private void markCompleted(SQLiteConnection connection) throws SQLiteException {
         SQLiteStatement statement = connection.createStatement("INSERT INTO migration (id, name, execution_date) VALUES (:id, :name, :execution_date)");
-        statement.bindId(migrationId, ":id");
-        statement.bindValue(getName(), ":name");
-        statement.bindValue(new Date(), ":execution_date");
+        statement.bindId(migrationId).to(":id");
+        statement.bindValue(getName()).to(":name");
+        statement.bindValue(new Date()).to(":execution_date");
         statement.execute();
     }
 
@@ -75,11 +75,15 @@ public abstract class Migration {
      */
     public static List<Long> getPerformedMigrationIds(SQLiteConnection connection) throws SQLiteException {
         SQLiteStatement statement = connection.createStatement("SELECT id FROM migration");
-        return statement.readList(new SQLiteStatement.RowValueCallback<Long>() {
-            @Override
-            public Long readRow(SQLiteRow row) throws SQLiteException {
-                return row.getId("id");
-            }
-        }, true);
+        try {
+            return statement.readList(new SQLiteStatement.RowValueCallback<Long>() {
+                @Override
+                public Long readRow(SQLiteRow row) throws SQLiteException {
+                    return row.getId("id");
+                }
+            });
+        } finally {
+            statement.finish();
+        }
     }
 }

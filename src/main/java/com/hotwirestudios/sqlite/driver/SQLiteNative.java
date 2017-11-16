@@ -282,7 +282,11 @@ public class SQLiteNative {
 
     static native int sqlite3_clear_bindings(StatementHandle statement);
 
+    static native int sqlite3_bind_parameter_count(StatementHandle statement);
+
     static native int sqlite3_bind_parameter_index(StatementHandle statement, String name);
+
+    static native String sqlite3_bind_parameter_name(StatementHandle statement, int index);
 
     static native int sqlite3_bind_null(StatementHandle statement, int index);
 

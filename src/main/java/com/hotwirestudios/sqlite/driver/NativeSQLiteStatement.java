@@ -4,6 +4,8 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
     private final SQLiteNative.StatementHandle handle;
     private final SQLiteResultHandler resultHandler;
     private Dictionary<String, Integer> columns;
+    private boolean finished = false;
 
     public static List<String> splitStatements(String sql) {
         List<String> result = new ArrayList<>();
@@ -71,9 +74,15 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
     }
 
     @Override
-    public void finish() throws SQLiteException {
+    public void finish() {
+        if (finished) {
+            return;
+        }
+
         // Ignore errors for finalize, because finalize repeats error codes of the most recent function call
         SQLiteNative.sqlite3_finalize(handle);
+        finished = true;
+        columns = null;
     }
 
     @Override
@@ -84,89 +93,52 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
     }
 
     @Override
-    public void bindId(long id, @NonNull String parameter) throws SQLiteException {
-        if (id == SQLiteObject.ROW_ID_NONE) {
-            bindNull(parameter);
-            return;
-        }
-
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), id);
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindId(long id) throws SQLiteException {
+        return id == SQLiteObject.ROW_ID_NONE ? bindNull() : getLongBinder(id);
     }
 
     @Override
-    public void bindValue(@Nullable Integer i, @NonNull String parameter) throws SQLiteException {
-        if (i == null) {
-            bindNull(parameter);
-            return;
-        }
-
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), i);
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindValue(@Nullable Integer i) throws SQLiteException {
+        return i == null ? bindNull() : getIntegerBinder(i);
     }
 
     @Override
-    public void bindValue(@Nullable Long l, @NonNull String parameter) throws SQLiteException {
-        if (l == null) {
-            bindNull(parameter);
-            return;
-        }
-
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), l);
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindValue(@Nullable Long l) throws SQLiteException {
+        return l == null ? bindNull() : getLongBinder(l);
     }
 
     @Override
-    public void bindValue(@Nullable Boolean b, @NonNull String parameter) throws SQLiteException {
-        if (b == null) {
-            bindNull(parameter);
-            return;
-        }
-
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), b ? 1 : 0);
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindValue(@Nullable Boolean b) throws SQLiteException {
+        return b == null ? bindNull() : getBooleanBinder(b);
     }
 
     @Override
-    public void bindValue(@Nullable Date date, @NonNull String parameter) throws SQLiteException {
-        if (date == null) {
-            bindNull(parameter);
-            return;
-        }
-
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_int64(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), TimeUnit.MILLISECONDS.toSeconds(date.getTime()));
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindValue(@Nullable Date date) throws SQLiteException {
+        return date == null ? bindNull() : getDateBinder(date);
     }
 
     @Override
-    public void bindValue(@Nullable String s, @NonNull String parameter) throws SQLiteException {
-        if (s == null) {
-            bindNull(parameter);
-            return;
-        }
-
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_text(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter), s, -1, SQLiteNative.SQLITE_TRANSIENT);
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindValue(@Nullable String s) throws SQLiteException {
+        return s == null ? bindNull() : getStringBinder(s);
     }
 
     @Override
-    public void bindNull(@NonNull String parameter) throws SQLiteException {
-        @SQLiteResult int result = SQLiteNative.sqlite3_bind_null(handle, SQLiteNative.sqlite3_bind_parameter_index(handle, parameter));
-        resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+    public BindableValue bindNull() throws SQLiteException {
+        return getNullBinder();
     }
 
-    public void load(@NonNull final RowCallback callback, boolean finish) throws SQLiteException {
+    public void load(@NonNull final RowCallback callback) throws SQLiteException {
         load(new RowValueCallback<Void>() {
             @Override
             public Void readRow(SQLiteRow row) throws SQLiteException {
                 callback.readRow(row);
                 return null;
             }
-        }, finish);
+        });
     }
 
     @Override
-    public <T> T load(@NonNull final RowValueCallback<T> callback, boolean finish) throws SQLiteException {
+    public <T> T load(@NonNull final RowValueCallback<T> callback) throws SQLiteException {
         return load(new CancellableRowValueCallback<T>() {
             @Override
             public boolean shouldCancel() {
@@ -177,11 +149,11 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             public T readRow(SQLiteRow row) throws SQLiteException {
                 return callback.readRow(row);
             }
-        }, finish);
+        });
     }
 
     @Override
-    public <T> T load(@NonNull CancellableRowValueCallback<T> callback, boolean finish) throws SQLiteException {
+    public <T> T load(@NonNull CancellableRowValueCallback<T> callback) throws SQLiteException {
         if (callback.shouldCancel()) {
             return null;
         }
@@ -199,34 +171,27 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             return null;
         }
 
-        try {
-            @SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
-            while (result == SQLiteNative.RESULT_ROW) {
-                if (callback.shouldCancel()) {
-                    return null;
-                }
+        @SQLiteResult int result = SQLiteNative.sqlite3_step(handle);
+        while (result == SQLiteNative.RESULT_ROW) {
+            if (callback.shouldCancel()) {
+                return null;
+            }
 
-                T rowResult = callback.readRow(this);
-                if (rowResult != null) {
-                    return rowResult;
-                }
-                //noinspection WrongConstant
-                result = SQLiteNative.sqlite3_step(handle);
+            T rowResult = callback.readRow(this);
+            if (rowResult != null) {
+                return rowResult;
             }
-            if (result != SQLiteNative.RESULT_DONE) {
-                resultHandler.throwExceptionWithCode(result);
-            }
-        } finally {
-            if (finish) {
-                columns = null;
-                finish();
-            }
+            //noinspection WrongConstant
+            result = SQLiteNative.sqlite3_step(handle);
+        }
+        if (result != SQLiteNative.RESULT_DONE) {
+            resultHandler.throwExceptionWithCode(result);
         }
         return null;
     }
 
     @Override
-    public <T> List<T> readList(@NonNull final RowValueCallback<T> callback, boolean finish) throws SQLiteException {
+    public <T> List<T> readList(@NonNull final RowValueCallback<T> callback) throws SQLiteException {
         return readList(new CancellableRowValueCallback<T>() {
             @Override
             public boolean shouldCancel() {
@@ -237,11 +202,11 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
             public T readRow(SQLiteRow row) throws SQLiteException {
                 return callback.readRow(row);
             }
-        }, finish);
+        });
     }
 
     @Override
-    public <T> List<T> readList(final @NonNull CancellableRowValueCallback<T> callback, boolean finish) throws SQLiteException {
+    public <T> List<T> readList(final @NonNull CancellableRowValueCallback<T> callback) throws SQLiteException {
         final List<T> result = new ArrayList<>();
         load(new RowCallback() {
             @Override
@@ -255,7 +220,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
                     result.add(item);
                 }
             }
-        }, finish);
+        });
         return result;
     }
 
@@ -319,7 +284,7 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
         }
 
         long timestamp = SQLiteNative.sqlite3_column_int64(handle, index);
-        return new Date(TimeUnit.SECONDS.toMillis(timestamp));
+        return new Date(timestamp);
     }
 
     @Override
@@ -330,5 +295,141 @@ public class NativeSQLiteStatement implements SQLiteStatement, SQLiteRow {
         }
 
         return SQLiteNative.sqlite3_column_text(handle, index);
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (!finished) {
+            finish();
+        }
+    }
+
+    private NullBinder nullBinder;
+
+    private NullBinder getNullBinder() {
+        if (nullBinder == null) {
+            nullBinder = new NullBinder();
+        }
+        return nullBinder;
+    }
+
+    private class NullBinder implements BindableValue {
+        @Override
+        public void to(@NonNull String parameter) throws SQLiteException {
+            to(SQLiteNative.sqlite3_bind_parameter_index(handle, parameter));
+        }
+
+        @Override
+        public void to(int parameterIndex) throws SQLiteException {
+            @SQLiteResult int result = SQLiteNative.sqlite3_bind_null(handle, parameterIndex);
+            resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+        }
+    }
+
+    private abstract class ValueBinder<T> implements BindableValue {
+        private T value;
+
+        protected void setValue(T value) {
+            this.value = value;
+        }
+
+        @Override
+        public void to(@NonNull String parameter) throws SQLiteException {
+            to(SQLiteNative.sqlite3_bind_parameter_index(handle, parameter));
+        }
+
+        @Override
+        public void to(int parameterIndex) throws SQLiteException {
+            @SQLiteResult int result = bind(value, parameterIndex);
+            resultHandler.handleResultCode(result, SQLiteNative.RESULT_OK);
+        }
+
+        @SQLiteResult
+        protected abstract int bind(T value, int index);
+    }
+
+    private IntegerBinder integerBinder;
+
+    private IntegerBinder getIntegerBinder(Integer value) {
+        if (integerBinder == null) {
+            integerBinder = new IntegerBinder();
+        }
+        integerBinder.setValue(value);
+        return integerBinder;
+    }
+
+    private class IntegerBinder extends ValueBinder<Integer> {
+        @Override
+        protected int bind(Integer value, int index) {
+            return SQLiteNative.sqlite3_bind_int(handle, index, value);
+        }
+    }
+
+    private LongBinder longBinder;
+
+    private LongBinder getLongBinder(Long value) {
+        if (longBinder == null) {
+            longBinder = new LongBinder();
+        }
+        longBinder.setValue(value);
+        return longBinder;
+    }
+
+    private class LongBinder extends ValueBinder<Long> {
+        @Override
+        protected int bind(Long value, int index) {
+            return SQLiteNative.sqlite3_bind_int64(handle, index, value);
+        }
+    }
+
+    private DateBinder dateBinder;
+
+    private DateBinder getDateBinder(Date value) {
+        if (dateBinder == null) {
+            dateBinder = new DateBinder();
+        }
+        dateBinder.setValue(value);
+        return dateBinder;
+    }
+
+    private class DateBinder extends ValueBinder<Date> {
+        @Override
+        protected int bind(Date value, int index) {
+            return SQLiteNative.sqlite3_bind_int64(handle, index, value.getTime());
+        }
+    }
+
+    private StringBinder stringBinder;
+
+    private StringBinder getStringBinder(String value) {
+        if (stringBinder == null) {
+            stringBinder = new StringBinder();
+        }
+        stringBinder.setValue(value);
+        return stringBinder;
+    }
+
+    private class StringBinder extends ValueBinder<String> {
+        @Override
+        protected int bind(String value, int index) {
+            return SQLiteNative.sqlite3_bind_text(handle, index, value, -1, SQLiteNative.SQLITE_TRANSIENT);
+        }
+    }
+
+    private BooleanBinder booleanBinder;
+
+    private BooleanBinder getBooleanBinder(boolean value) {
+        if (booleanBinder == null) {
+            booleanBinder = new BooleanBinder();
+        }
+        booleanBinder.setValue(value);
+        return booleanBinder;
+    }
+
+    private class BooleanBinder extends ValueBinder<Boolean> {
+        @Override
+        protected int bind(Boolean value, int index) {
+            return SQLiteNative.sqlite3_bind_int(handle, index, value ? 1 : 0);
+        }
     }
 }

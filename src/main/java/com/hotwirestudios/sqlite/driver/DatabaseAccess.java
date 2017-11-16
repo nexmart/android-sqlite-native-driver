@@ -32,36 +32,31 @@ public class DatabaseAccess {
      *
      * @param <T>               The result type
      * @param connectionContext The execution context
-     * @param connected         If true, a database connection is established before running the context and closed afterwards
      * @param withinTransaction If true, a new transaction is started before running the context and automatically committed or rolled back on success/error.
      * @return The resulting asynchronous task
      */
-    public <T> Task<T> performThreadsafe(final SQLiteConnectionContext<T> connectionContext, final boolean connected, final boolean withinTransaction) {
+    public <T> Task<T> performThreadsafe(final SQLiteConnectionContext<T> connectionContext, final boolean withinTransaction) {
         return Task.call(new Callable<T>() {
             @Override
             public T call() throws Exception {
-                if (connected) {
-                    connection.open();
-                    connection.executeStatement("PRAGMA foreign_keys = 1");
-                }
+                connection.open();
+                connection.executeStatement("PRAGMA foreign_keys = 1");
                 try {
-                    if (connected && withinTransaction) {
+                    if (withinTransaction) {
                         connection.beginTransaction();
                     }
-                    T result = connectionContext.run(connected ? connection : null);
-                    if (connected && withinTransaction) {
+                    T result = connectionContext.run(connection);
+                    if (withinTransaction) {
                         connection.commitTransaction();
                     }
                     return result;
                 } catch (Exception exception) {
-                    if (connected && withinTransaction) {
+                    if (withinTransaction) {
                         connection.rollbackTransaction();
                     }
                     throw exception;
                 } finally {
-                    if (connected) {
-                        connection.close();
-                    }
+                    connection.close();
                 }
             }
         }, executorService);
@@ -80,6 +75,6 @@ public class DatabaseAccess {
          * @return The result
          * @throws Exception
          */
-        TResult run(@Nullable SQLiteConnection connection) throws Exception;
+        TResult run(@NonNull SQLiteConnection connection) throws Exception;
     }
 }
