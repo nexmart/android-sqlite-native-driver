@@ -1,22 +1,17 @@
 package com.hotwirestudios.sqlite.driver;
 
+import java.io.Closeable;
+
 /**
  * Provides more control over a connection life-cycle than SQLiteConnection
  */
-interface SQLiteConnectionInternal extends SQLiteConnection {
+interface SQLiteConnectionInternal extends SQLiteConnection, Closeable {
     /**
      * Opens a connection.
      *
      * @throws SQLiteException
      */
     void open() throws SQLiteException;
-
-    /**
-     * Closes a connection.
-     *
-     * @throws SQLiteException
-     */
-    void close() throws SQLiteException;
 
     /**
      * Begins a new transaction.

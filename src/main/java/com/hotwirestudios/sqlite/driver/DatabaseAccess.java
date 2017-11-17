@@ -39,7 +39,9 @@ public class DatabaseAccess {
         return Task.call(new Callable<T>() {
             @Override
             public T call() throws Exception {
-                connection.open();
+                if (!connection.isOpen()) {
+                    connection.open();
+                }
                 connection.executeStatement("PRAGMA foreign_keys = 1");
                 try {
                     if (withinTransaction) {
@@ -55,8 +57,6 @@ public class DatabaseAccess {
                         connection.rollbackTransaction();
                     }
                     throw exception;
-                } finally {
-                    connection.close();
                 }
             }
         }, executorService);

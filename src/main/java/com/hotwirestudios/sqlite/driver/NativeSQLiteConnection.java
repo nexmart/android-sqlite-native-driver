@@ -2,6 +2,7 @@ package com.hotwirestudios.sqlite.driver;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import org.bytedeco.javacpp.BytePointer;
 
@@ -27,6 +28,10 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
     }
 
     public void open() throws SQLiteException {
+        if (handle != null) {
+            return;
+        }
+
         SQLiteNative.ConnectionHandle pointer = new SQLiteNative.ConnectionHandle();
         @SQLiteResult int result = SQLiteNative.sqlite3_open_v2(path, pointer, flags, null);
         handleResultCode(result, SQLiteNative.RESULT_OK);
@@ -42,14 +47,19 @@ public class NativeSQLiteConnection implements SQLiteConnectionInternal, SQLiteR
         handleResultCode(collationResult, SQLiteNative.RESULT_OK);
     }
 
-    public void close() throws SQLiteException {
+    public boolean isOpen() {
+        return handle != null;
+    }
+
+    public void close() {
         if (handle == null) {
             return;
         }
 
         @SQLiteResult int result = SQLiteNative.sqlite3_close(handle);
         if (result != SQLiteNative.RESULT_OK) {
-            throw new SQLiteException(result, getResultMessage(result));
+            Log.e("SQLITE", "Could not close connection. Code: " + result + ", message: " + getResultMessage(result));
+            return;
         }
         handle = null;
     }
