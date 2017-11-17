@@ -12,7 +12,7 @@ public class SQLiteException extends Exception {
     public SQLiteException(@SQLiteResult int errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
-        Log.d("Lernapp/SQLITE", "Result Code: " + errorCode + ", Message: " + message);
+        Log.d("SQLITE", "Result Code: " + errorCode + ", Message: " + message);
     }
 
     @SQLiteResult
