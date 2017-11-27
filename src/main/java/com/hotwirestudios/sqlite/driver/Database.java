@@ -65,7 +65,7 @@ public class Database<TReadOperations, TReadWriteOperations extends TReadOperati
                 TReadWriteOperations operations = factory.createReadWriteOperations(connection);
                 return runner.run(operations);
             }
-        }, false);
+        }, true);
     }
 
     /**
