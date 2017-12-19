@@ -1,3 +1,9 @@
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/miloyip/rapidjson.git
+[submodule "sqlcipher"]
+	path = sqlcipher
+	url = https://github.com/sqlcipher/sqlcipher.git
+[submodule "openssl"]
+	path = openssl
+	url = https://github.com/openssl/openssl.git
