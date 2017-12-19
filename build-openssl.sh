@@ -97,8 +97,7 @@ ANDROID_64_SDK_VERSION=$(( ANDROID_SDK_VERSION > 21 ? ANDROID_SDK_VERSION : 21 )
      python ${ANDROID_NDK_ROOT}/build/tools/make_standalone_toolchain.py \
             --arch ${TOOLCHAIN_ARCH} \
             --api ${ANDROID_API_VERSION} \
-            --install-dir ${ANDROID_TOOLCHAIN_DIR} \
-            --unified-headers
+            --install-dir ${ANDROID_TOOLCHAIN_DIR}
 
      if [ $? -ne 0 ]; then
          echo "Error executing make_standalone_toolchain.py for ${TOOLCHAIN_ARCH}"

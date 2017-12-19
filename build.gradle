@@ -12,7 +12,7 @@ buildscript {
 }
 
 ext {
-    androidMinSdkVersion = 19
+    androidMinSdkVersion = 21
     sqlcipherDir = "${projectDir}/sqlcipher"
     opensslDir = "${projectDir}/openssl"
     sqlcipherCFlags = "-DSQLITE_HAS_CODEC " +
@@ -69,7 +69,7 @@ android {
             def platform64Version = "android-${androidMinSdkVersion > 21 ? androidMinSdkVersion : 21}"
             def platformVersion = "android-${androidMinSdkVersion}"
 
-            buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv5te -mtune=xscale -msoft-float', 'armeabi')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv5te -mtune=xscale -msoft-float -funswitch-loops -finline-limit=300 -O3 -s', 'armeabi')
             buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv7-a -mfloat-abi=softfp -mfpu=neon -ffast-math -Wl,--fix-cortex-a8', 'armeabi-v7a')
             buildSQLiteTask(cp, ndkRoot, projectRoot, platform64Version, 'arm64', 'aarch64-linux-android', 'aarch64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'arm64-v8a')
             buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'x86', 'x86', 'i686-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86')
@@ -93,7 +93,7 @@ def buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, androidArchitectu
                 "-Dplatform.sysroot=platforms/${platformVersion}/arch-${androidArchitecture}",
                 "-Dplatform.compiler.default=${flags} ${sqlcipherCFlags}",
                 '-Dplatform.compiler=toolchains/' + compilerArchitecture + '-4.9/prebuilt/darwin-x86_64/bin/' + compilerPrefix + '-g++',
-                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-database-sqlcipher/sqlcipher:' + projectRoot + '/rapidjson/include:' + projectRoot + '/sqlite-rapidjson',
+                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + "sysroot/usr/include:sysroot/usr/include/${compilerPrefix}:" + projectRoot + '/android-database-sqlcipher/android-database-sqlcipher/src/main/cpp:' + projectRoot + '/android-database-sqlcipher/android-database-sqlcipher/src/main/external/sqlcipher:' + projectRoot + '/rapidjson/include:' + projectRoot + '/sqlite-rapidjson',
                 '-Dplatform.linkpath=sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + ':' + projectRoot + '/libs/' + outputArchitecture,
                 '-d', projectRoot + '/libs/' + outputArchitecture,
                 'com.hotwirestudios.sqlite.driver.SQLiteNative'
