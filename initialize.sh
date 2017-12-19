@@ -7,16 +7,13 @@ echo "========================================================================="
 git submodule update -i --recursive
 echo ""
 
-cd android-database-sqlcipher
 echo "Building OpenSSL"
 echo "========================================================================="
 ./gradlew buildOpenSSL
 echo ""
-echo "Building Amalgamation"
+echo "Building SQLCipher"
 echo "========================================================================="
-./gradlew buildAmalgamation
-
-cd ..
+./gradlew buildSQLCipher
 
 echo ""
 echo "Building SQLite Native Driver"

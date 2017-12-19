@@ -2,21 +2,21 @@
 
 Provides a native build of SQLite with an interface for Android libraries.
 
-Based on [JavaCPP](https://github.com/bytedeco/javacpp) and [Android SQLCipher](https://github.com/sqlcipher/android-database-sqlcipher).
+Based on [JavaCPP](https://github.com/bytedeco/javacpp) and [SQLCipher](https://github.com/sqlcipher/sqlcipher). Borrowed some build scripts from [Android SQLCipher](https://github.com/sqlcipher/android-database-sqlcipher).
 
-License: UNLICENSE (public domain). Please note that SQLCipher is not public domain. Find their license [here](https://github.com/sqlcipher/android-database-sqlcipher/blob/master/SQLCIPHER_LICENSE).
+License: UNLICENSE (public domain). Please note that SQLCipher is not public domain, but BSD 3-clause License. Find it here [here](https://github.com/sqlcipher/sqlcipher/blob/master/LICENSE).
 
 ## About
 
 Android SQLite native driver provides:
-- Semi-automatic AAR build, including build of a native SQLite library (currently version 3.8.10.2) for major Android targets (`armeabi`, `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64`) - See setup steps below
+- Semi-automatic AAR build, including build of a native SQLite library (currently version 3.15.2) for major Android targets (`armeabi`, `armeabi-v7a`, `arm64-v8a`, `x86`, `x86_64`) - See setup steps below
 - `SQLiteConnection` and `SQLiteStatement` interfaces for the most common use cases of accessing SQLite databases
 - Registration of function callbacks in SQLite
 - Safely making asynchronous database calls using `Database` and `DatabaseAccess` classes (see example below) by leveraging [Bolts](https://github.com/BoltsFramework/Bolts-Android) - This is optional. You're welcome to just use `NativeSQLiteConnection` directly, but keep in mind, that SQLite by itself is not thread-safe and you'll have to handle both thread-safety and opening/closing database connections by yourself then.
 - Lightweight database migrations (just apply, no revert). Again this is optional. Feel free to roll your own migration mechanism.
 - `DIACRITIC` collation for text columns that should be sorted, respecting diacritics. **NOTE**: This makes sorting considerably slower, as it uses a callback to Java internally. Just apply `COLLATE DIACRITIC` to your `TEXT` column, if you want this.
 - Fast initialization/update of a database from a JSON String (using [RapidJSON](https://github.com/miloyip/rapidjson))
-- Database encryption using [SQLCipher](https://github.com/sqlcipher/android-database-sqlcipher) (pass null key to skip encryption)
+- Database encryption using [SQLCipher](https://github.com/sqlcipher/sqlcipher) (pass null key to skip encryption)
 
 SQLite connection handles, function handles etc. are mostly wrapped for type-safety - single exception are callback function arguments (see example below).
 
@@ -40,7 +40,7 @@ Whatever happens in your database operations `run` method (see below) must run s
 
 This example assumes the initial schema of your database is stored in a raw text file called `schema`. `MyDatabaseOperations` provides your actual high-level database functions. This is covered below.
 
-**NOTE**: This sets up a thread-safe way to call your database, but after migrating your DB the SQLite connection is actually closed. See the coverage of `DatabaseAccess` later on.
+**NOTE**: This sets up a thread-safe way to call your database. Because de-/encryption makes opening connections expensive, the connection is kept open until explicitly closed.
 
 ```java
 public Task<Database<MyDatabaseOperations>> establishDatabase(File file, String encryptionKey) {
@@ -93,7 +93,7 @@ public class MyDatabaseOperationsImpl implements MyDatabaseOperations {
     public List<MyObj> findObjectsWithName(String name, final CancellationToken token) throws SQLiteException {
         SQLiteStatement statement = connection.createStatement("SELECT id, name FROM my_objects WHERE name LIKE :name");
         try {
-            statement.bindValue("%" + name + "%", ":name");
+            statement.bindValue("%" + name + "%").to(":name");
             return statement.readList(new SQLiteStatement.CancellableRowValueCallback<ContentItem>() {
                 @Override
                 public boolean shouldCancel() {
@@ -145,8 +145,8 @@ public class MyDatabaseOperationsImpl implements MyDatabaseOperations {
             for (MyObj obj : objs) {
                 statement.resetAndClearBindings();
 
-                statement.bindNull(":id");
-                statement.bindValue(obj.getName(), ":name");
+                statement.bindNull().to(":id");
+                statement.bindValue(obj.getName()).to(":name");
                 statement.step();
 
                 obj.setId(connection.getLastInsertRowId());
@@ -204,7 +204,7 @@ public List<MyObj> findObjectsWithName(NativeSQLiteConnection connection, String
     try
     {
         SQLiteStatement statement = connection.createStatement("SELECT id, name FROM my_objects WHERE name LIKE :name");
-        statement.bindValue("%" + name + "%", ":name");
+        statement.bindValue("%" + name + "%").to(":name");
         statement.readList(new SQLiteStatement.RowValueCallback<T>() {
             @Override
             public T readRow(SQLiteRow row) throws SQLiteException {
@@ -230,8 +230,8 @@ public void insertObjects(NativeSQLiteConnection connection, List<MyObj> objs) t
             for (MyObj obj : objs) {
                 statement.resetAndClearBindings();
 
-                statement.bindNull(":id");
-                statement.bindValue(obj.getName(), ":name");
+                statement.bindNull().to(":id");
+                statement.bindValue(obj.getName()).to(":name");
                 statement.step();
 
                 obj.setId(connection.getLastInsertRowId());

@@ -9,3 +9,4 @@ libs
 .idea
 .gradle
 local.properties
+android-libs

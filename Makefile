@@ -6,7 +6,7 @@ init:
 
 # NOTE: adding v (verbose) flag for the beginning stage:
 ndkbuild:
-	rm -rf lib libs
+	rm -rf libs
 	ndk-build
     # zip sqlite-native-driver-libs.zip libs/*/*
 

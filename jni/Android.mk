@@ -2,15 +2,13 @@
 
 LOCAL_PATH := $(call my-dir)
 
-SRC_MAIN_DIR := android-database-sqlcipher/android-database-sqlcipher/src/main
-
 include $(CLEAR_VARS)
 
-SQLCIPHER_DIR := $(SRC_MAIN_DIR)/external/sqlcipher
+SQLCIPHER_DIR := sqlcipher
 
-LOCAL_C_INCLUDES := $(SQLCIPHER_DIR) $(SRC_MAIN_DIR)
+LOCAL_C_INCLUDES := $(SQLCIPHER_DIR)
 LOCAL_LDLIBS := -llog -latomic
-LOCAL_LDFLAGS += -L../$(SRC_MAIN_DIR)/external/android-libs/$(TARGET_ARCH_ABI) -fuse-ld=bfd
+LOCAL_LDFLAGS += -L../android-libs/$(TARGET_ARCH_ABI) -fuse-ld=bfd
 LOCAL_STATIC_LIBRARIES += static-libcrypto
 LOCAL_LDLIBS := -llog
 LOCAL_CFLAGS += -DSQLITE_HAS_CODEC
@@ -41,6 +39,6 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := static-libcrypto
-LOCAL_EXPORT_C_INCLUDES := $(SRC_MAIN_DIR)/external/openssl/include
-LOCAL_SRC_FILES := ../$(SRC_MAIN_DIR)/external/android-libs/$(TARGET_ARCH_ABI)/libcrypto.a
+LOCAL_EXPORT_C_INCLUDES := openssl/include
+LOCAL_SRC_FILES := ../android-libs/$(TARGET_ARCH_ABI)/libcrypto.a
 include $(PREBUILT_STATIC_LIBRARY)

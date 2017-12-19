@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply from: "native.gradle"
 
 buildscript {
     repositories {
@@ -10,6 +11,32 @@ buildscript {
     }
 }
 
+ext {
+    androidMinSdkVersion = 19
+    sqlcipherDir = "${projectDir}/sqlcipher"
+    opensslDir = "${projectDir}/openssl"
+    sqlcipherCFlags = "-DSQLITE_HAS_CODEC " +
+            "-DSQLITE_SOUNDEX " +
+            "-DHAVE_USLEEP=1 " +
+            "-DSQLITE_MAX_VARIABLE_NUMBER=99999 " +
+            "-DSQLITE_TEMP_STORE=3 " +
+            "-DSQLITE_THREADSAFE=1 " +
+            "-DSQLITE_DEFAULT_JOURNAL_SIZE_LIMIT=1048576 " +
+            "-DNDEBUG=1 " +
+            "-DSQLITE_ENABLE_MEMORY_MANAGEMENT=1 " +
+            "-DSQLITE_ENABLE_LOAD_EXTENSION " +
+            "-DSQLITE_ENABLE_COLUMN_METADATA " +
+            "-DSQLITE_ENABLE_UNLOCK_NOTIFY " +
+            "-DSQLITE_ENABLE_RTREE " +
+            "-DSQLITE_ENABLE_STAT3 " +
+            "-DSQLITE_ENABLE_STAT4 " +
+            "-DSQLITE_ENABLE_JSON1 " +
+            "-DSQLITE_ENABLE_FTS3_PARENTHESIS " +
+            "-DSQLITE_ENABLE_FTS4 " +
+            "-DSQLITE_ENABLE_FTS5 " +
+            "-DSQLCIPHER_CRYPTO_OPENSSL"
+}
+
 android {
     repositories {
         jcenter()
@@ -19,7 +46,7 @@ android {
     buildToolsVersion '27.0.2'
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion androidMinSdkVersion
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -39,12 +66,14 @@ android {
             def projectRoot = projectDir.getCanonicalPath()
             def ndkRoot = android.getNdkDirectory().getCanonicalPath()
             def cp = variant.javaCompiler.destinationDir.getCanonicalPath()
+            def platform64Version = "android-${androidMinSdkVersion > 21 ? androidMinSdkVersion : 21}"
+            def platformVersion = "android-${androidMinSdkVersion}"
 
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv5te -mtune=xscale -msoft-float', 'armeabi')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv7-a -mfloat-abi=softfp -mfpu=neon -ffast-math -Wl,--fix-cortex-a8', 'armeabi-v7a')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'arm64', 'aarch64-linux-android', 'aarch64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'arm64-v8a')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86', 'x86', 'i686-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86')
-            buildSQLiteTask(cp, ndkRoot, projectRoot, 'x86_64', 'x86_64', 'x86_64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86_64')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv5te -mtune=xscale -msoft-float', 'armeabi')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'arm', 'arm-linux-androideabi', 'arm-linux-androideabi', '-march=armv7-a -mfloat-abi=softfp -mfpu=neon -ffast-math -Wl,--fix-cortex-a8', 'armeabi-v7a')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, platform64Version, 'arm64', 'aarch64-linux-android', 'aarch64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'arm64-v8a')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, 'x86', 'x86', 'i686-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86')
+            buildSQLiteTask(cp, ndkRoot, projectRoot, platform64Version, 'x86_64', 'x86_64', 'x86_64-linux-android', '-funswitch-loops -finline-limit=300 -O3 -s', 'x86_64')
             println 'javacpp done'
         }
     }
@@ -54,17 +83,17 @@ configurations {
     javacpp
 }
 
-def buildSQLiteTask(cp, ndkRoot, projectRoot, androidArchitecture, compilerArchitecture, compilerPrefix, flags, outputArchitecture) {
+def buildSQLiteTask(cp, ndkRoot, projectRoot, platformVersion, androidArchitecture, compilerArchitecture, compilerPrefix, flags, outputArchitecture) {
     javaexec {
         main 'org.bytedeco.javacpp.tools.Builder'
         classpath configurations.javacpp
         args '-cp', cp,
                 '-properties', "android-${androidArchitecture}",
                 '-Dplatform.root=' + ndkRoot,
-                "-Dplatform.sysroot=platforms/${android.compileSdkVersion}/arch-" + androidArchitecture,
-                '-Dplatform.compiler.default=' + flags + ' -DSQLITE_HAS_CODEC -DSQLCIPHER_CRYPTO_OPENSSL',
+                "-Dplatform.sysroot=platforms/${platformVersion}/arch-${androidArchitecture}",
+                "-Dplatform.compiler.default=${flags} ${sqlcipherCFlags}",
                 '-Dplatform.compiler=toolchains/' + compilerArchitecture + '-4.9/prebuilt/darwin-x86_64/bin/' + compilerPrefix + '-g++',
-                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-database-sqlcipher/android-database-sqlcipher/src/main/cpp:' + projectRoot + '/android-database-sqlcipher/android-database-sqlcipher/src/main/external/sqlcipher:' + projectRoot + '/rapidjson/include:' + projectRoot + '/sqlite-rapidjson',
+                '-Dplatform.includepath=sources/cxx-stl/gnu-libstdc++/4.9/include:sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + '/include:' + projectRoot + '/android-database-sqlcipher/sqlcipher:' + projectRoot + '/rapidjson/include:' + projectRoot + '/sqlite-rapidjson',
                 '-Dplatform.linkpath=sources/cxx-stl/gnu-libstdc++/4.9/libs/' + outputArchitecture + ':' + projectRoot + '/libs/' + outputArchitecture,
                 '-d', projectRoot + '/libs/' + outputArchitecture,
                 'com.hotwirestudios.sqlite.driver.SQLiteNative'

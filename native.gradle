@@ -1,0 +1,64 @@
+task buildOpenSSL() {
+    onlyIf {
+        def armNativeFile = new File("android-libs/x86_64/libcrypto.a")
+        return !armNativeFile.exists()
+    }
+    doLast {
+        exec {
+            workingDir "${projectDir}"
+            commandLine "./build-openssl.sh", androidMinSdkVersion
+        }
+    }
+}
+
+task buildSQLCipher() {
+    doLast {
+        exec {
+            workingDir "${projectDir}/sqlcipher"
+            environment("CFLAGS", "${sqlcipherCFlags}")
+            commandLine "./configure", "--enable-tempstore=yes", "--with-crypto-lib=none"
+        }
+        exec {
+            workingDir "${projectDir}/sqlcipher"
+            environment("CFLAGS", "${sqlcipherCFlags}")
+            commandLine "make", "sqlite3.c"
+        }
+    }
+}
+
+task buildNativeDriver() {
+    doLast {
+        exec {
+            workingDir "${projectDir}"
+            commandLine "make"
+        }
+    }
+}
+
+task cleanOpenSSL() {
+    description "Clean the OpenSSL source"
+    doLast {
+        logger.info "Cleaning OpenSSL source"
+        gitClean("${opensslDir}")
+    }
+}
+
+task cleanSQLCipher() {
+    description "Clean the SQLCipher source"
+    doLast {
+        logger.info "Cleaning SQLCipher source"
+        gitClean("${sqlcipherDir}")
+    }
+}
+
+def gitClean(directory) {
+    logger.info "Cleaning directory:${directory}"
+    exec {
+        workingDir "${directory}"
+        commandLine "git", "checkout", "-f"
+    }
+    exec {
+        workingDir "${directory}"
+        commandLine "git", "clean", "-d", "-f"
+    }
+}
