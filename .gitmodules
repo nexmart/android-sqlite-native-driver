@@ -1,6 +1,3 @@
-[submodule "android-database-sqlcipher"]
-	path = android-database-sqlcipher
-	url = https://github.com/sqlcipher/android-database-sqlcipher.git
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/miloyip/rapidjson.git
